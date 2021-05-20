@@ -173,7 +173,7 @@ This produces quite a bit of output about what is going on, but if
 everything went ok, the last two lines should be:
 
 	INFO: Registered device on TTN.
-	INFO: Note: Device was reset.
+	INFO: Note: Device was restarted.
 
 When TTN registration fails
 ---------------------------

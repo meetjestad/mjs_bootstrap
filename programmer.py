@@ -365,7 +365,7 @@ def main():
 
         # Setting option bytes resets
         if not args.skip_flash:
-            logging.info("Note: Device was reset.")
+            logging.info("Note: Device was restarted.")
     except Exception as e:
         logging.error(e)
 
