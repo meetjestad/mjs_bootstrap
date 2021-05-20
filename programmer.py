@@ -26,6 +26,7 @@ FREQUENCY_PLAN = 'EU_863_870_TTN'
 # update existing devices too
 LORAWAN_VERSION = 'MAC_V1_0'
 LORAWAN_PHY_VERSION = 'PHY_V1_0'
+DEVICE_ID_TEMPLATE = 'meetstation-{}'
 
 # FLASH upload info
 DFU_VIDPID = "0483:df11"
@@ -324,7 +325,7 @@ def main():
             lorawan_version = LORAWAN_VERSION
             lorawan_phy_version = LORAWAN_PHY_VERSION
             dev_eui = args.id
-            dev_id = 'meetstation-{}'.format(args.id)
+            dev_id = DEVICE_ID_TEMPLATE.format(args.id)
             app_key = secrets.token_bytes(KEY_SIZE)
             board_info = BOARDS[args.board]
 
