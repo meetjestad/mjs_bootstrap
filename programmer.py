@@ -79,6 +79,7 @@ BOARDS = {
     # board_version (can be detected using the segment size)
     'mjs2020-proto2': BoardInfo(board_id=0x2, board_version=0x01),
     'mjs2020-proto3': BoardInfo(board_id=0x2, board_version=0x02),
+    'mjs2020-proto4': BoardInfo(board_id=0x2, board_version=0x03),
     # Fallback, just in case we use this for other boards
     'other': BoardInfo(board_id=0x0, board_version=0x0),
 }
