@@ -335,17 +335,24 @@ def main():
             )
             logging.info("Generated FLASH contents: %s", flash.hex(' ', 4))
 
-            logging.info("Programming FLASH...")
+            if not args.skip_flash:
+                logging.info("Programming FLASH...")
+            else:
+                logging.info("Not programming FLASH...")
             # Put the data at the end of FLASH
             flash_offset = FLASH_SIZE - len(flash)
             program_flash(args, flash, flash_offset)
-            logging.info("Programmed FLASH")
+            if not args.skip_flash:
+                logging.info("Programmed FLASH")
 
             option = encode_option_bytes(OPTION_BYTES_PROTECTED)
             logging.info("Encoded OPTION bytes: %s", option.hex(' ', 4))
             program_option_bytes(args, option)
 
-            logging.info("Registering %s on TTN...", dev_id)
+            if not args.skip_register:
+                logging.info("Registering %s on TTN...", dev_id)
+            else:
+                logging.info("Not registering %s on TTN...", dev_id)
             register_device(
                 args, app_id=app_id, dev_id=dev_id, app_eui=app_eui,
                 dev_eui=dev_eui, app_key=app_key,
@@ -353,10 +360,12 @@ def main():
                 lorawan_version=lorawan_version,
                 lorawan_phy_version=lorawan_phy_version
             )
-            logging.info("Registered device on TTN.")
+            if not args.skip_register:
+                logging.info("Registered device on TTN.")
 
         # Setting option bytes resets
-        logging.info("Note: Device was reset.")
+        if not args.skip_flash:
+            logging.info("Note: Device was reset.")
     except Exception as e:
         logging.error(e)
 
