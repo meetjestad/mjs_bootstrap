@@ -20,6 +20,12 @@ BLOCK_FORMAT = ">I{}HI".format(SEGMENT_FORMAT[1:])
 
 # TTN info
 APP_EUI = 0x70B3D57ED00003BA
+APP_ID = 'meet-je-stad'
+FREQUENCY_PLAN = 'EU_863_870_TTN'
+# TODO: BasicMAC probably supports 1.0.something at least, check and
+# update existing devices too
+LORAWAN_VERSION = 'MAC_V1_0'
+LORAWAN_PHY_VERSION = 'PHY_V1_0'
 
 # FLASH upload info
 DFU_VIDPID = "0483:df11"
@@ -242,18 +248,33 @@ def verify_dfu(alt: str, data: bytes, address: int):
                 )
 
 
-def register_device(args: argparse.Namespace, dev_id: str, app_eui: int, dev_eui: int, app_key: bytes):
+def register_device(args: argparse.Namespace, app_id: str, dev_id: str,
+                    app_eui: int, dev_eui: int, app_key: bytes,
+                    frequency_plan: str, lorawan_version: str,
+                    lorawan_phy_version: str):
     def hex_eui(eui: int) -> str:
         return struct.pack('>Q', eui).hex()
 
     cmd = [
-        'ttnctl',
-        'devices',
-        'register',
+        'ttn-lw-cli',
+        'end-devices',
+        'create',
+        '--application-id',
+        app_id,
+        '--device-id',
         dev_id,
+        '--dev-eui',
         hex_eui(dev_eui),
+        '--root-keys.app-key.key',
         app_key.hex(),
-        '--app-eui', hex_eui(app_eui),
+        '--join-eui',
+        hex_eui(app_eui),
+        '--lorawan-version',
+        lorawan_version,
+        '--lorawan-phy-version',
+        lorawan_phy_version,
+        '--frequency-plan-id',
+        frequency_plan,
     ]
 
     if args.skip_register:
@@ -298,6 +319,10 @@ def main():
             program_option_bytes(args, option)
         else:
             app_eui = APP_EUI
+            app_id = APP_ID
+            frequency_plan = FREQUENCY_PLAN
+            lorawan_version = LORAWAN_VERSION
+            lorawan_phy_version = LORAWAN_PHY_VERSION
             dev_eui = args.id
             dev_id = 'meetstation-{}'.format(args.id)
             app_key = secrets.token_bytes(KEY_SIZE)
@@ -320,7 +345,13 @@ def main():
             program_option_bytes(args, option)
 
             logging.info("Registering %s on TTN...", dev_id)
-            register_device(args, dev_id=dev_id, app_eui=app_eui, dev_eui=dev_eui, app_key=app_key)
+            register_device(
+                args, app_id=app_id, dev_id=dev_id, app_eui=app_eui,
+                dev_eui=dev_eui, app_key=app_key,
+                frequency_plan=frequency_plan,
+                lorawan_version=lorawan_version,
+                lorawan_phy_version=lorawan_phy_version
+            )
             logging.info("Registered device on TTN.")
 
         # Setting option bytes resets
