@@ -7,6 +7,7 @@ import secrets
 import shlex
 import struct
 import subprocess
+import sys
 import tempfile
 import typing
 import logging
@@ -47,6 +48,10 @@ OPTION_BYTES_PROTECTED = [
     # Note: DFU uploads to protected pages give no error, but they just
     # do not work
 ]
+
+# Whether to work with the older dfu-util 0.9 version (autodetected when
+# None)
+DFU_UTIL_0_9 = None
 
 
 class BoardInfo(typing.NamedTuple):
@@ -135,6 +140,11 @@ def encode_option_bytes(words: typing.Sequence[int]):
     return res
 
 
+def check_dfu_version():
+    output = subprocess.run(['dfu-util', '--version'], check=True, stdout=subprocess.PIPE, text=True).stdout
+    return output.startswith('dfu-util 0.9')
+
+
 def program_option_bytes(args: argparse.Namespace, data: bytes):
     program_dfu(DFU_OPTION_ALT, data, OPTION_START_ADDRESS,
                 noop=args.skip_flash, filename=args.option_filename,
@@ -160,7 +170,7 @@ def program_dfu(alt: str, data: bytes, address: int, filename: str, noop=False, 
         # (before reporting succesful status). This happens when writing
         # option bytes. This needs dfu-util 0.10 (released nov 2020).
         # Without it, dfu-util returns failure.
-        if will_reset:
+        if will_reset and not DFU_UTIL_0_9:
             addr_arg += ":will-reset"
 
         cmd = [
@@ -179,9 +189,26 @@ def program_dfu(alt: str, data: bytes, address: int, filename: str, noop=False, 
             logging.info("Not running: %s", shlex.join(cmd))
         else:
             logging.info("Running: %s", shlex.join(cmd))
-            # TODO: This sometimes fails with "dfu-util: Error during
-            # download get_status". Should we retry? Can we fix dfu-util?
-            subprocess.check_call(cmd)
+            if will_reset and DFU_UTIL_0_9:
+                # dfu-util 0.9 cannot handle a board reset and will
+                # return failure, so try to detect this by capturing
+                # dfu-util output. This merges stdout and stderr, to
+                # preserve any interleaving when printing again (at the
+                # expense of mixing everything in stdout below)
+                res = subprocess.run(cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                sys.stdout.buffer.write(res.stdout)
+                sys.stdout.buffer.flush()
+                if res.returncode == 74 and b'dfu-util: Error during download get_status' in res.stdout:
+                    logging.warning("Ignoring error from dfu-util, it is *probably* only because dfu-util does not "
+                                    "handle a reset after writing option bytes.")
+                    logging.warning("Using dfu-util 0.10 or above handles this properly.")
+                else:
+                    # On other errors, let subprocess raise an error as normal
+                    res.check_returncode()
+            else:
+                # With dfu-util 0.10, or when not expecting a reset,
+                # just let dfu-util output to the console directly
+                subprocess.run(cmd, check=True)
 
 
 def verify_dfu(alt: str, data: bytes, address: int):
@@ -261,6 +288,10 @@ def main():
     args = parser.parse_args()
 
     try:
+        global DFU_UTIL_0_9
+        if not args.skip_flash and DFU_UTIL_0_9 is None:
+            DFU_UTIL_0_9 = check_dfu_version()
+
         if args.unprotect:
             option = encode_option_bytes(OPTION_BYTES_UNPROTECTED)
             logging.info("Encoded OPTION bytes: %s", option.hex(' ', 4))
