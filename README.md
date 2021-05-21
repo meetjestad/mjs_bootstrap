@@ -238,3 +238,14 @@ The script prints the `ttn-lw-cli` command that it would have normally
 executed (look for a line `INFO: Not running: ttn-lw-cli ...`), so if
 you send that command (or the entire script output) to whomever has
 access to TTN, they can register the device with the keys you flashed.
+
+License
+=======
+All files in this repository are licensed under the "Beluki" license:
+
+> Permission is hereby granted, free of charge, to anyone
+> obtaining a copy of this document and accompanying files,
+> to do whatever they want with them without any restriction,
+> including, but not limited to, copying, modification and redistribution.
+>
+> NO WARRANTY OF ANY KIND IS PROVIDED.
