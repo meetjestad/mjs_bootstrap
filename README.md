@@ -52,8 +52,12 @@ Using this script requires a number things:
  - Python3, probably 3.5 or newer, available as `python3` in the path.
 
  - The [`crc32c`](https://pypi.org/project/crc32c/) python package,
-   which can be easily installed using apt (or alternatively using
-   `pip`):
+   which can be easily installed using pip:
+
+       $ sudo pip3 install --user crc32c
+
+   Alternatively, you can use apt (but at the time of writing this only
+   works on Debian sid and some Ubuntu versions):
 
        $ sudo apt install python3-crc32c
 
