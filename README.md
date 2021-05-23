@@ -78,6 +78,10 @@ Using this script requires a number things:
    you just want to flash boards and let someone else register them).
    See below for detailed instructions.
 
+ - Set up permissions to access the USB device. Instructions can be
+   found [in the mjs_boards
+   repository](https://github.com/meetjestad/mjs_boards/tree/stm32l0#linux).
+
 Setting up ttn-lw-cli
 ---------------------
 This script expects the `ttn-lw-cli` command (which offers commandline
